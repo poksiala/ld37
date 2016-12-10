@@ -12,19 +12,17 @@ var DUL = [M, M];
 var DLL = [M, H-M];
 var DUR = [W-M, M];
 var DLR = [W-M, H-M];
-var DUM = [W/2, M];
-var DLM = [W/2, H-M];
 
 var DW = W/2 - M;
-
 var FPS = 30;
 
 var SPEED = 0;
 
 var DSTATUS = 1.00;
-
 var DMOVING = 0;
 var DSPEED = 0.05;
+
+var dude = newDude();
 
 function main() {
     var c=document.getElementById("canv");
@@ -56,7 +54,7 @@ function draw(ctx) {
     ctx.fill();
     drawWalls(ctx);
     drawDoors(ctx);
-
+    dude.draw(ctx)
 }
 
 function drawWalls(ctx) {
@@ -116,7 +114,7 @@ window.addEventListener('keydown', function(event) {
             changeSpeed(-1);
             break;
 
-        case 32:
+        case 32: // Space
             if (doorsOpen()) {
                 DMOVING = 1;
             } else if (doorsClosed()) {
@@ -137,5 +135,39 @@ function doorsClosed() {
 
 }
 
-window.onload = main();
+function newDude() {
+    return {
+        x: 200,
+        y: 400,
+        legW: 20,
+        legH: 100,
+        bodyH: 100,
+        armH: 90,
+        armW: 20,
+        headR: 20,
+        color: "black",
+        draw: function (ctx) {
+            ctx.beginPath();
+            ctx.fillStyle = "black";
+            ctx.arc(this.x, this.y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2, true);
+            ctx.fill();
 
+            ctx.beginPath();
+            // body
+            ctx.moveTo(this.x, this.y - this.legH);
+            ctx.lineTo(this.x, this.y - this.legH - this.bodyH);
+            // arms
+            ctx.moveTo(this.x - this.armW, this.y - this.legH);
+            ctx.lineTo(this.x, this.y - this.legH - this.armH);
+            ctx.lineTo(this.x + this.armW, this.y - this.legH);
+            // legs
+            ctx.moveTo(this.x - this.legW, this.y);
+            ctx.lineTo(this.x, this.y - this.legH);
+            ctx.lineTo(this.x + this.legW, this.y);
+            ctx.strokeStyle = this.color;
+            ctx.stroke();
+        }
+    };
+}
+
+window.onload = main();
