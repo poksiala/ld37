@@ -15,9 +15,23 @@ var DLR = [W-M, H-M];
 var DUM = [W/2, M];
 var DLM = [W/2, H-M];
 
+var FPS = 30;
+
+
 function main() {
     var c=document.getElementById("canv");
     var ctx=c.getContext("2d");
+    loop = setInterval(function() {
+        draw(ctx);
+        update();
+    }, 1000/FPS);
+}
+
+function update() {
+    
+}
+
+function draw(ctx) {
     drawWalls(ctx);
     drawDoors(ctx);
 }
