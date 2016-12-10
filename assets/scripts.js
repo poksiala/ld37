@@ -28,7 +28,7 @@ function main() {
 }
 
 function update() {
-    
+
 }
 
 function draw(ctx) {
@@ -69,6 +69,24 @@ function drawPoly(ctx, fillStyle, corners) {
     ctx.closePath();
     ctx.fill();
 }
+
+window.addEventListener('keydown', function(event) {
+    switch (event.keyCode) {
+
+        case 38: // Up
+            console.log("up");
+        break;
+
+        case 40: // Down
+            console.log("down");
+        break;
+
+        case 32: // Space
+            console.log("space");
+        break;
+        }
+}, false);
+
 
 window.onload = main();
 
