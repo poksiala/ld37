@@ -22,7 +22,20 @@ var DSTATUS = 1.00;
 var DMOVING = 0;
 var DSPEED = 0.05;
 
-var dude = newDude();
+var PLACES = [[50, 490],[100, 470],[150, 490],[200, 470],[250, 490],[300, 470],[350, 490]];
+
+var dudes = [];
+
+for (var i=0; i < PLACES.length; i++) {
+    dudes.push(newDude(PLACES[i], 1));
+}
+
+function drawDudes(ctx) {
+    for (var i=0; i < dudes.length; i++) {
+        dudes[i].draw(ctx);
+    }
+
+}
 
 function main() {
     var c=document.getElementById("canv");
@@ -34,7 +47,7 @@ function main() {
 }
 
 function update() {
-    console.log(DMOVING);
+    //console.log(DMOVING);
     DSTATUS += DMOVING* DSPEED;
     if (DSTATUS <= 0.0 ) {
         DSTATUS = 0.0;
@@ -44,7 +57,7 @@ function update() {
         DSTATUS = 1.0;
         DMOVING = 0;
     }
-    console.log(DSTATUS);
+    //console.log(DSTATUS);
 }
 
 function draw(ctx) {
@@ -54,7 +67,7 @@ function draw(ctx) {
     ctx.fill();
     drawWalls(ctx);
     drawDoors(ctx);
-    dude.draw(ctx)
+    drawDudes(ctx);
 }
 
 function drawWalls(ctx) {
@@ -132,13 +145,12 @@ function doorsOpen() {
 }
 function doorsClosed() {
     return DSTATUS == 1.0;
-
 }
 
-function newDude() {
-    return {
-        x: 200,
-        y: 400,
+function newDude(pos, f) {
+    var dude = {
+        x: 0,
+        y: 0,
         legW: 20,
         legH: 100,
         bodyH: 100,
@@ -146,6 +158,7 @@ function newDude() {
         armW: 20,
         headR: 20,
         color: "black",
+        wantsTo: f,
         draw: function (ctx) {
             ctx.beginPath();
             ctx.fillStyle = "black";
@@ -164,10 +177,26 @@ function newDude() {
             ctx.moveTo(this.x - this.legW, this.y);
             ctx.lineTo(this.x, this.y - this.legH);
             ctx.lineTo(this.x + this.legW, this.y);
+            ctx.lineWidth = 3;
             ctx.strokeStyle = this.color;
             ctx.stroke();
+        },
+        setPos: function (cords) {
+            this.x = cords[0];
+            this.y = cords[1];
         }
+
     };
+    dude.setPos(pos);
+    return dude
 }
+
+function newFloor(color) {
+    floor = {
+        color: color
+    };
+    return floor;
+}
+
 
 window.onload = main();
