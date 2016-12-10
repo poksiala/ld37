@@ -47,7 +47,6 @@ function main() {
 }
 
 function update() {
-    //console.log(DMOVING);
     DSTATUS += DMOVING* DSPEED;
     if (DSTATUS <= 0.0 ) {
         DSTATUS = 0.0;
@@ -57,7 +56,6 @@ function update() {
         DSTATUS = 1.0;
         DMOVING = 0;
     }
-    //console.log(DSTATUS);
 }
 
 function draw(ctx) {
@@ -65,9 +63,11 @@ function draw(ctx) {
     ctx.rect(0, 0, W, H);
     ctx.fillStyle = "red";
     ctx.fill();
+    floors.forEach(function (f) {f.draw(ctx)});
     drawWalls(ctx);
     drawDoors(ctx);
-    drawDudes(ctx);
+    dudes.forEach(function (d) {d.draw(ctx)});
+
 }
 
 function drawWalls(ctx) {
@@ -160,6 +160,7 @@ function newDude(pos, f) {
         color: "black",
         wantsTo: f,
         draw: function (ctx) {
+            // head
             ctx.beginPath();
             ctx.fillStyle = "black";
             ctx.arc(this.x, this.y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2, true);
@@ -193,10 +194,25 @@ function newDude(pos, f) {
 
 function newFloor(color) {
     floor = {
-        color: color
+        color: color,
+        draw: function (ctx) {
+            ctx.beginPath();
+            ctx.rect(0, 0, W, H);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
     };
     return floor;
 }
+
+var floors = [
+    newFloor("blue"),
+    newFloor("red"),
+    newFloor("green")
+];
+
+
+
 
 
 window.onload = main();
