@@ -12,12 +12,15 @@ var DUL = [M, M];
 var DLL = [M, H-M];
 var DUR = [W-M, M];
 var DLR = [W-M, H-M];
+var DUM = [W/2, M];
+var DLM = [W/2, H-M];
 
 function main() {
 
     var c=document.getElementById("canv");
     var ctx=c.getContext("2d");
     drawWalls(ctx);
+    drawDoors(ctx);
 };
 
 
@@ -27,13 +30,24 @@ function drawWalls(ctx) {
     var floor = [LL, DLL, DLR, LR];
     var rightWall = [UR, DUR, DLR, LR];
     
-    drawPoly(ctx, "#AB2567", ceiling);
-    drawPoly(ctx, "#AB2567", floor);
-    drawPoly(ctx, "#AB2567", leftWall);
-    drawPoly(ctx, "#AB2567", rightWall);
+    drawPoly(ctx, "#BBBCBD", ceiling);
+    drawPoly(ctx, "#4F1319", floor);
+    drawPoly(ctx, "#4F4D4E", rightWall);
+    drawPoly(ctx, "#4F4D4E", leftWall);
+};
+
+function drawDoors(ctx) {
+    var leftDoor = [DUL, DUM, DLM, DLL];
+    var rightDoor = [DUR, DUM, DLM, DLR];
+
+
+    drawPoly(ctx, "#636062", leftDoor);
+    drawPoly(ctx, "#636062", rightDoor);
 };
 
 function drawPoly(ctx, fillstyle, corners) {
+    ctx.fillStyle = fillstyle;
+    console.log(ctx.fillstyle)
     ctx.beginPath();
     var x = corners[0][0];
     var y = corners[0][1];
