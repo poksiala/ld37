@@ -18,7 +18,7 @@ var FPS = 30;
 
 var SPEED = 0;
 
-
+var NUMFLOORS = 7;
 
 var PLACES = [[50, 490],[100, 470],[150, 490],[200, 470],[250, 490],[300, 470],[350, 490]];
 
@@ -189,18 +189,18 @@ function newFloor(color, pos) {
         draw: function (ctx, y) {
             var top = y + this.pos;
             var bottom = y + this.pos + this.h;
-            drawPoly(ctx, this.color, [[0, top], [W, top], [W, bottom], [0, bottom]]);
-            drawPoly(ctx, "black", [[0, bottom-100], [W, bottom-100], [W, bottom], [0, bottom]]);
+            drawPoly(ctx, "black", [[0, top], [W, top], [W, bottom], [0, bottom]]);
+            drawPoly(ctx, this.color, [[0, top+50], [W, top+50], [W, bottom-50], [0, bottom-50]]);
         }
     };
 }
 
-var floors = [
-    newFloor("blue", 0),
-    newFloor("pink", 1),
-    newFloor("green", 2),
-    newFloor("yellow", 3)
-];
+var floors = [];
+
+for (var n = 0; n < NUMFLOORS; n++) {
+    floors.push(newFloor(getRandomColor(), n));
+}
+
 
 function drawPoly(ctx, fillStyle, corners) {
     ctx.fillStyle = fillStyle;
@@ -229,5 +229,12 @@ function main() {
     }, 1000/FPS);
 }
 
-
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
 
