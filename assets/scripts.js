@@ -36,11 +36,17 @@ function newGame(c) {
         floorColor: "#4F1319",
         ceilingColor: "#BBBCBD",
         wallColor: "#4F4D4E",
-        liftPos: 100,
+        liftPos: -500 * (NUMFLOORS -1),
         ctx: c.getContext("2d"),
         update: function (){
-            this.liftPos += SPEED;
+            console.log(this.floor());
+            this.liftPos +=  SPEED * Math.abs(SPEED);
             this.doors.update();
+
+            this.dudes.forEach(function (d) {
+                d.update();
+            });
+
             floors.forEach(function (f) {
                 f.update();
             });
@@ -133,11 +139,30 @@ function newGame(c) {
          */
         dudeIn: function (dude) {
             if (this.dudes.length <7) {
+                dude.inLift = true;
                 this.dudes.push(dude);
                 return true;
             } else {
                 return false;
             }
+        },
+
+        dudeOut: function (dude) {
+            var i = this.dudes.indexOf(dude);
+            this.dudes.splice(i, 1);
+        },
+
+        /** Get current floor
+         *
+         * @returns {number} floor number, else -1
+         */
+        floor: function () {
+            if (Math.abs(this.liftPos % 500) <= 5) {
+                return NUMFLOORS - Math.abs( Math.round(this.liftPos/500));
+            } else {
+                return -1
+            }
+
         }
     };
     return newGame
@@ -165,6 +190,7 @@ function newDude(pos, f) {
     var dude = {
         x: 0,
         y: 0,
+        inLift: false,
         legW: 20,
         legH: 100,
         bodyH: 100,
@@ -173,6 +199,11 @@ function newDude(pos, f) {
         headR: 20,
         color: "black",
         wantsTo: f,
+        update: function () {
+            if (this.wantsTo == Game.floor() && Game.doors.areOpen()) {
+                Game.dudeOut(this);
+            }
+        },
         draw: function (ctx, x, y) {
             x = typeof x !== 'undefined' ? x : this.x;
             y = typeof y !== 'undefined' ? y : this.y;
@@ -221,7 +252,7 @@ function newFloor(color, pos) {
         pos: pos * 500,
 
         update: function () {
-            if (Math.abs(this.pos - (-1 * Game.liftPos)) <=5) {
+            if (this.num == Game.floor()) {
                 // lift is on the floor
                 if (Game.doors.areOpen()) {
                     var insertedDudes = [];
@@ -274,7 +305,7 @@ var floors = [];
 for (var n = 0; n < NUMFLOORS; n++) {
     floors.push(newFloor(getRandomColor(), n));
 }
-floors[0].addDude();
+floors[floors.length - 1].addDude();
 
 
 function drawPoly(ctx, fillStyle, corners) {
@@ -302,7 +333,19 @@ function main() {
         Game.draw();
         Game.update();
     }, 1000/FPS);
+    Game.dudeLoop = setInterval(spawnDude, 5000)
 }
+
+function getRandomFloor() {
+    var n = Math.floor((Math.random() * NUMFLOORS));
+    return floors[n];
+}
+
+function spawnDude() {
+    var floor = getRandomFloor();
+    floor.addDude()
+}
+
 
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
