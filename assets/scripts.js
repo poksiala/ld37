@@ -18,9 +18,7 @@ var FPS = 30;
 
 var SPEED = 0;
 
-var DSTATUS = 1.00;
-var DMOVING = 0;
-var DSPEED = 0.05;
+
 
 var PLACES = [[50, 490],[100, 470],[150, 490],[200, 470],[250, 490],[300, 470],[350, 490]];
 
@@ -30,121 +28,109 @@ for (var i=0; i < PLACES.length; i++) {
     dudes.push(newDude(PLACES[i], 1));
 }
 
-function drawDudes(ctx) {
-    for (var i=0; i < dudes.length; i++) {
-        dudes[i].draw(ctx);
-    }
-}
+function newGame(c) {
+    var newGame = {
+        floorColor: "#4F1319",
+        ceilingColor: "#BBBCBD",
+        wallColor: "#4F4D4E",
+        ctx: c.getContext("2d"),
+        update: function (){
+            this.doors.update();
+        },
 
-function main() {
-    var c=document.getElementById("canv");
-    var ctx=c.getContext("2d");
-    var loop = setInterval(function() {
-        draw(ctx);
-        update();
-    }, 1000/FPS);
-}
-
-function update() {
-    DSTATUS += DMOVING* DSPEED;
-    if (DSTATUS <= 0.0 ) {
-        DSTATUS = 0.0;
-        DMOVING = 0;
-    }
-    if (DSTATUS >= 1.0) {
-        DSTATUS = 1.0;
-        DMOVING = 0;
-    }
-}
-
-function draw(ctx) {
-    ctx.beginPath();
-    ctx.rect(0, 0, W, H);
-    ctx.fillStyle = "red";
-    ctx.fill();
-    floors.forEach(function (f) {f.draw(ctx)});
-    drawWalls(ctx);
-    drawDoors(ctx);
-    dudes.forEach(function (d) {d.draw(ctx)});
-
-}
-
-function drawWalls(ctx) {
-    var ceiling = [UL,UR,DUR,DUL];
-    var leftWall = [UL, DUL, DLL, LL];
-    var floor = [LL, DLL, DLR, LR];
-    var rightWall = [UR, DUR, DLR, LR];
-    drawPoly(ctx, "#BBBCBD", ceiling);
-    drawPoly(ctx, "#4F1319", floor);
-    drawPoly(ctx, "#4F4D4E", rightWall);
-    drawPoly(ctx, "#4F4D4E", leftWall);
-}
-
-function drawDoors(ctx) {
-    var leftDoor = [DUL,
-        [M+ DW * DSTATUS, M],
-        [M+ DW * DSTATUS, H-M],
-        DLL];
-    var rightDoor = [DUR,
-        [W - M - DW * DSTATUS, M],
-        [W - M - DW * DSTATUS, H-M],
-        DLR];
-    drawPoly(ctx, "#636062", leftDoor);
-    drawPoly(ctx, "#636062", rightDoor);
-}
-
-function drawPoly(ctx, fillStyle, corners) {
-    ctx.fillStyle = fillStyle;
-    ctx.beginPath();
-    var x = corners[0][0];
-    var y = corners[0][1];
-    corners.shift();
-    ctx.moveTo(x, y);
-    for (var i = 0; i < corners.length; i++) {
-        x = corners[i][0];
-        y = corners[i][1];
-        ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-}
-
-function changeSpeed(amount) {
-    if (Math.abs(SPEED + amount) <= 3) {
-        SPEED += amount
-    }
-}
-
-window.addEventListener('keydown', function(event) {
-    switch (event.keyCode) {
-
-        case 38: // Up
-            changeSpeed(1);
-            break;
-
-        case 40: // Down
-            changeSpeed(-1);
-            break;
-
-        case 32: // Space
-            if (doorsOpen()) {
-                DMOVING = 1;
-            } else if (doorsClosed()) {
-                DMOVING = -1;
-            } else {
-                DMOVING = DMOVING * (-1);
+        doors: {
+            color: "#636062",
+            status: 1.00,
+            moving: 0,
+            speed: 0.05,
+            draw: function(ctx) {
+                var leftDoor = [DUL,
+                    [M + DW * this.status, M],
+                    [M + DW * this.status, H - M],
+                    DLL];
+                var rightDoor = [DUR,
+                    [W - M - DW * this.status, M],
+                    [W - M - DW * this.status, H - M],
+                    DLR];
+                drawPoly(ctx, this.color, leftDoor);
+                drawPoly(ctx, this.color, rightDoor);
+            },
+            update: function () {
+                this.status += this.moving * this.speed;
+                if (this.status <= 0.0) {
+                    this.status = 0.0;
+                    this.status = 0;
+                }
+                if (this.status >= 1.0) {
+                    this.status = 1.0;
+                    this.moving = 0;
+                }
+            },
+            buttonPressed: function () {
+                if (this.status == 0.0) {
+                    this.moving = 1;
+                } else if (this.status == 1.0) {
+                    this.moving = -1;
+                } else {
+                    this.moving = this.moving * (-1);
+                }
             }
-            break;
-    }
-}, false);
+        },
+
+        draw: function() {
+            this.ctx.beginPath();
+            this.ctx.rect(0, 0, W, H);
+            this.ctx.fillStyle = "red";
+            this.ctx.fill();
+            var that = this;
+            floors.forEach(function (f) {
+                f.draw(that.ctx)
+            });
+            this.drawWalls();
+            this.doors.draw(this.ctx);
+            dudes.forEach(function (d) {
+                d.draw(that.ctx)
+            });
+
+        },
+
+        drawWalls: function() {
+            var ceiling = [UL, UR, DUR, DUL];
+            var leftWall = [UL, DUL, DLL, LL];
+            var floor = [LL, DLL, DLR, LR];
+            var rightWall = [UR, DUR, DLR, LR];
+            drawPoly(this.ctx, this.ceilingColor, ceiling);
+            drawPoly(this.ctx, this.floorColor, floor);
+            drawPoly(this.ctx, this.wallColor, rightWall);
+            drawPoly(this.ctx, this.wallColor, leftWall);
+        },
+
+        changeSpeed: function(amount) {
+            if (Math.abs(SPEED + amount) <= 3) {
+                SPEED += amount
+            }
+        }
+    };
+    return newGame
+}
 
 
-function doorsOpen() {
-    return DSTATUS == 0.0;
-}
-function doorsClosed() {
-    return DSTATUS == 1.0;
-}
+window.addEventListener('keydown', function (event) {
+        switch (event.keyCode) {
+
+            case 38: // Up
+                Game.changeSpeed(1);
+                break;
+
+            case 40: // Down
+                Game.changeSpeed(-1);
+                break;
+
+            case 32: // Space
+                Game.doors.buttonPressed();
+                break;
+        }
+    }, false);
 
 function newDude(pos, f) {
     var dude = {
@@ -192,7 +178,7 @@ function newDude(pos, f) {
 }
 
 function newFloor(color) {
-    floor = {
+    return {
         color: color,
         draw: function (ctx) {
             ctx.beginPath();
@@ -201,7 +187,7 @@ function newFloor(color) {
             ctx.fill();
         }
     };
-    return floor;
+
 }
 
 var floors = [
@@ -210,4 +196,32 @@ var floors = [
     newFloor("green")
 ];
 
+function drawPoly(ctx, fillStyle, corners) {
+    ctx.fillStyle = fillStyle;
+    ctx.beginPath();
+    var x = corners[0][0];
+    var y = corners[0][1];
+    corners.shift();
+    ctx.moveTo(x, y);
+    for (var i = 0; i < corners.length; i++) {
+        x = corners[i][0];
+        y = corners[i][1];
+        ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+}
+
+
 window.onload = main();
+
+function main() {
+    Game = newGame(document.getElementById("canv"));
+    Game.loop = setInterval(function() {
+        Game.draw();
+        Game.update();
+    }, 1000/FPS);
+}
+
+
+
