@@ -25,7 +25,7 @@ var PLACES = [[50, 490],[100, 470],[150, 490],[200, 470],[250, 490],[300, 470],[
 var dudes = [];
 
 for (var i=0; i < PLACES.length; i++) {
-    dudes.push(newDude(PLACES[i], 1));
+    dudes.push(newDude(PLACES[i], Math.floor((Math.random() * NUMFLOORS) + 1)));
 }
 
 function newGame(c) {
@@ -46,6 +46,9 @@ function newGame(c) {
             status: 1.00,
             moving: 0,
             speed: 0.05,
+            areClosed: function () {
+                return this.status == 1.0;
+            },
             draw: function(ctx) {
                 var leftDoor = [DUL,
                     [M + DW * this.status, M],
@@ -59,7 +62,6 @@ function newGame(c) {
                 drawPoly(ctx, this.color, rightDoor);
             },
             update: function () {
-
                 this.status += this.moving * this.speed;
                 if (this.status <= 0.0) {
                     this.status = 0.0;
@@ -73,7 +75,7 @@ function newGame(c) {
             buttonPressed: function () {
                 if (this.status == 0.0) {
                     this.moving = 1;
-                } else if (this.status == 1.0) {
+                } else if (this.areClosed() && Math.abs(SPEED) <= 1) {
                     this.moving = -1;
                 } else {
                     this.moving = this.moving * (-1);
@@ -95,7 +97,6 @@ function newGame(c) {
             dudes.forEach(function (d) {
                 d.draw(that.ctx)
             });
-
         },
 
         drawWalls: function() {
@@ -110,7 +111,8 @@ function newGame(c) {
         },
 
         changeSpeed: function(amount) {
-            if (Math.abs(SPEED + amount) <= 3) {
+            if ((this.doors.areClosed() && Math.abs(SPEED + amount) <= 3)
+                                        || Math.abs(SPEED + amount) <= 1) {
                 SPEED += amount;
             }
         }
@@ -148,25 +150,31 @@ function newDude(pos, f) {
         headR: 20,
         color: "black",
         wantsTo: f,
-        draw: function (ctx) {
+        draw: function (ctx, x, y) {
+            x = typeof x !== 'undefined' ? x : this.x;
+            y = typeof y !== 'undefined' ? y : this.y;
             // head
             ctx.beginPath();
             ctx.fillStyle = "black";
-            ctx.arc(this.x, this.y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2, true);
+            ctx.arc(x, y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2, true);
             ctx.fill();
+
+            ctx.font="20px Georgia";
+            ctx.fillStyle = "white";
+            ctx.fillText(this.wantsTo,x -5,y - this.legH - this.bodyH - this.headR/3);
 
             ctx.beginPath();
             // body
-            ctx.moveTo(this.x, this.y - this.legH);
-            ctx.lineTo(this.x, this.y - this.legH - this.bodyH);
+            ctx.moveTo(x, y - this.legH);
+            ctx.lineTo(x, y - this.legH - this.bodyH);
             // arms
-            ctx.moveTo(this.x - this.armW, this.y - this.legH);
-            ctx.lineTo(this.x, this.y - this.legH - this.armH);
-            ctx.lineTo(this.x + this.armW, this.y - this.legH);
+            ctx.moveTo(x - this.armW, y - this.legH);
+            ctx.lineTo(x, y - this.legH - this.armH);
+            ctx.lineTo(x + this.armW, y - this.legH);
             // legs
-            ctx.moveTo(this.x - this.legW, this.y);
-            ctx.lineTo(this.x, this.y - this.legH);
-            ctx.lineTo(this.x + this.legW, this.y);
+            ctx.moveTo(x - this.legW, y);
+            ctx.lineTo(x, y - this.legH);
+            ctx.lineTo(x + this.legW, y);
             ctx.lineWidth = 3;
             ctx.strokeStyle = this.color;
             ctx.stroke();
@@ -183,14 +191,28 @@ function newDude(pos, f) {
 
 function newFloor(color, pos) {
     return {
+        dudes: [],
         color: color,
         h: 500,
+        num: NUMFLOORS - pos,
         pos: pos * 500,
         draw: function (ctx, y) {
             var top = y + this.pos;
             var bottom = y + this.pos + this.h;
             drawPoly(ctx, "black", [[0, top], [W, top], [W, bottom], [0, bottom]]);
             drawPoly(ctx, this.color, [[0, top+50], [W, top+50], [W, bottom-50], [0, bottom-50]]);
+
+            ctx.font="30px Georgia";
+            ctx.fillStyle = "white";
+            ctx.fillText(this.num, W - 100, top + 100);
+
+        },
+        addDude: function () {
+            var n = -1;
+            while (n < 0 || n == this.num) {
+                n = Math.floor((Math.random() * NUMFLOORS) + 1);
+            }
+            var dude = newDude([-100,-100], n)
         }
     };
 }
