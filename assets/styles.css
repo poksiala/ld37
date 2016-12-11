@@ -2,6 +2,11 @@ canvas {
     border: 1px solid #d3d3d3;
 }
 
+body {
+    width: 500px;
+    margin: auto;
+    text-align: center;
+}
 
 h1.title {
 

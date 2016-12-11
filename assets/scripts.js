@@ -15,20 +15,15 @@ var DLR = [W-M, H-M];
 
 var DW = W/2 - M;
 var FPS = 30;
+var TIME = 30*60*3;
+var timeElem = document.getElementById("time");
 
 var SPEED = 0;
-
-var NUMFLOORS = 3;
-
-var PLACES = [[50, 490],[100, 470],[150, 490],[200, 470],[250, 490],[300, 470],[350, 490]];
-
-var dudes = [];
+var MAXPATIENCE = 3000;
+var NUMFLOORS = 7;
 
 var SCORE = 0;
-
-for (var i=0; i < PLACES.length; i++) {
-    dudes.push(newDude(PLACES[i], Math.floor((Math.random() * NUMFLOORS) + 1)));
-}
+var scoreElem = document.getElementById("score");
 
 function newGame(c) {
     var newGame = {
@@ -52,6 +47,13 @@ function newGame(c) {
             floors.forEach(function (f) {
                 f.update();
             });
+
+            TIME -= 1;
+            if (TIME == 0) {
+                clearInterval(this.loop);
+                clearInterval(this.dudeLoop);
+            }
+            timeElem.innerHTML = Math.floor(TIME/30/60) + ":" + Math.floor(TIME/30 % 60);
 
         },
 
@@ -89,6 +91,9 @@ function newGame(c) {
                     this.status = 1.0;
                     this.moving = 0;
                 }
+
+
+
             },
             buttonPressed: function () {
                 if (this.areOpen()) {
@@ -153,7 +158,8 @@ function newGame(c) {
         dudeOut: function (dude) {
             var i = this.dudes.indexOf(dude);
             this.dudes.splice(i, 1);
-            SCORE += dude.patience;
+            SCORE +=Math.floor (((dude.patience/MAXPATIENCE)*10) * ((dude.patience/MAXPATIENCE)*10));
+            scoreElem.innerHTML = SCORE;
             dude.isOut = true;
         },
 
@@ -178,14 +184,17 @@ window.addEventListener('keydown', function (event) {
         switch (event.keyCode) {
 
             case 38: // Up
+                event.preventDefault();
                 Game.changeSpeed(1);
                 break;
 
             case 40: // Down
+                event.preventDefault();
                 Game.changeSpeed(-1);
                 break;
 
             case 32: // Space
+                event.preventDefault();
                 Game.doors.buttonPressed();
                 break;
         }
@@ -204,7 +213,7 @@ function newDude(pos, f) {
         headR: 20,
         color: "black",
         wantsTo: f,
-        patience: 6000,
+        patience: MAXPATIENCE,
         isOut: false,
         update: function () {
             if (!this.isOut && this.inLift) {
@@ -213,7 +222,9 @@ function newDude(pos, f) {
                     Game.dudeOut(this);
                 }
             }
-            this.patience = this.patience - 1;
+            if (this.patience>0) {
+                this.patience = this.patience - 1;
+            }
         },
         draw: function (ctx, x, y) {
             x = typeof x !== 'undefined' ? x : this.x;
@@ -225,14 +236,14 @@ function newDude(pos, f) {
             ctx.fill();
 
             ctx.beginPath();
-            ctx.arc(x, y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2  - Math.PI * 2 * (this.patience / 6000), true);
+            ctx.arc(x, y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2  - Math.PI * 2 * (this.patience / MAXPATIENCE), true);
             ctx.strokeStyle = "white";
             ctx.stroke();
 
 
             ctx.font="20px Georgia";
             ctx.fillStyle = "white";
-            ctx.fillText(this.wantsTo,x -5,y - this.legH - this.bodyH - this.headR/3);
+            ctx.fillText(this.wantsTo , x -5 ,y - this.legH - this.bodyH - this.headR/3);
 
             ctx.beginPath();
             // body
@@ -303,15 +314,14 @@ function newFloor(color, pos) {
             drawPoly(ctx, this.color, [[0, top+50], [W, top+50], [W, bottom-50], [0, bottom-50]]);
 
             // dudes
-
-            this.dudes.forEach(function (d) {
-                d.draw(ctx, 250, bottom - 70);
-            });
+            for (var i = this.dudes.length-1; i >= 0; i--) {
+                this.dudes[i].draw(ctx, 250+ (10*i), bottom - 70 - (10*i))
+            }
 
             // floor number
             ctx.font="30px Georgia";
             ctx.fillStyle = "white";
-            ctx.fillText(this.num, W - 100, top + 100);
+            ctx.fillText(this.num, W - 140, top + 100);
         },
         addDude: function () {
             var n = -1;
@@ -382,10 +392,12 @@ window.onload = main();
 function main() {
     Game = newGame(document.getElementById("canv"));
     Game.loop = setInterval(function() {
-        Game.draw();
-        Game.update();
+       // if (!GAMEOVER){
+            Game.draw();
+            Game.update();
+        //}
     }, 1000/FPS);
-    Game.dudeLoop = setInterval(spawnDude, 5000)
+    Game.dudeLoop = setInterval(spawnDude, 4000)
 }
 
 function getRandomFloor() {
