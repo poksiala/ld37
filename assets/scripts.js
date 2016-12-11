@@ -18,7 +18,7 @@ var FPS = 30;
 
 var SPEED = 0;
 
-var NUMFLOORS = 7;
+var NUMFLOORS = 3;
 
 var PLACES = [[50, 490],[100, 470],[150, 490],[200, 470],[250, 490],[300, 470],[350, 490]];
 
@@ -30,6 +30,8 @@ for (var i=0; i < PLACES.length; i++) {
 
 function newGame(c) {
     var newGame = {
+        places: [[50, 490],[100, 470],[150, 490],[200, 470],[250, 490],[300, 470],[350, 490]],
+        dudes: [],
         speed: 0,
         floorColor: "#4F1319",
         ceilingColor: "#BBBCBD",
@@ -39,6 +41,10 @@ function newGame(c) {
         update: function (){
             this.liftPos += SPEED;
             this.doors.update();
+            floors.forEach(function (f) {
+                f.update();
+            });
+
         },
 
         doors: {
@@ -48,6 +54,9 @@ function newGame(c) {
             speed: 0.05,
             areClosed: function () {
                 return this.status == 1.0;
+            },
+            areOpen: function () {
+                return this.status == 0.0;
             },
             draw: function(ctx) {
                 var leftDoor = [DUL,
@@ -73,7 +82,7 @@ function newGame(c) {
                 }
             },
             buttonPressed: function () {
-                if (this.status == 0.0) {
+                if (this.areOpen()) {
                     this.moving = 1;
                 } else if (this.areClosed() && Math.abs(SPEED) <= 1) {
                     this.moving = -1;
@@ -94,9 +103,10 @@ function newGame(c) {
             });
             this.drawWalls();
             this.doors.draw(this.ctx);
-            dudes.forEach(function (d) {
-                d.draw(that.ctx)
-            });
+            for (var i = 0; i < this.dudes.length; i++) {
+                this.dudes[i].setPos(this.places[i]);
+                this.dudes[i].draw(that.ctx);
+            }
         },
 
         drawWalls: function() {
@@ -114,6 +124,19 @@ function newGame(c) {
             if ((this.doors.areClosed() && Math.abs(SPEED + amount) <= 3)
                                         || Math.abs(SPEED + amount) <= 1) {
                 SPEED += amount;
+            }
+        },
+        /** Insert dude into lift
+         *
+         * @param dude
+         * @returns {boolean} whether or not insertion was successful
+         */
+        dudeIn: function (dude) {
+            if (this.dudes.length <7) {
+                this.dudes.push(dude);
+                return true;
+            } else {
+                return false;
             }
         }
     };
@@ -196,23 +219,52 @@ function newFloor(color, pos) {
         h: 500,
         num: NUMFLOORS - pos,
         pos: pos * 500,
+
+        update: function () {
+            if (Math.abs(this.pos - (-1 * Game.liftPos)) <=5) {
+                // lift is on the floor
+                if (Game.doors.areOpen()) {
+                    var insertedDudes = [];
+
+                    for (var i = 0; i < this.dudes.length; i++) {
+                        if (Game.dudeIn(this.dudes[i])) {
+                            insertedDudes.push(this.dudes[i]);
+                        }
+                    }
+                    for (var i = 0; i < insertedDudes.length; i++) {
+                        var ii = this.dudes.indexOf(insertedDudes[i]);
+                        this.dudes.splice(ii, 1);
+                    }
+
+                }
+            }
+        },
+
         draw: function (ctx, y) {
+            // helping variables
             var top = y + this.pos;
             var bottom = y + this.pos + this.h;
+            // floor backgorund
             drawPoly(ctx, "black", [[0, top], [W, top], [W, bottom], [0, bottom]]);
             drawPoly(ctx, this.color, [[0, top+50], [W, top+50], [W, bottom-50], [0, bottom-50]]);
 
+            // dudes
+
+            this.dudes.forEach(function (d) {
+                d.draw(ctx, 250, bottom - 70);
+            });
+
+            // floor number
             ctx.font="30px Georgia";
             ctx.fillStyle = "white";
             ctx.fillText(this.num, W - 100, top + 100);
-
         },
         addDude: function () {
             var n = -1;
             while (n < 0 || n == this.num) {
                 n = Math.floor((Math.random() * NUMFLOORS) + 1);
             }
-            var dude = newDude([-100,-100], n)
+            this.dudes.push(newDude([-100,-100], n));
         }
     };
 }
@@ -222,6 +274,7 @@ var floors = [];
 for (var n = 0; n < NUMFLOORS; n++) {
     floors.push(newFloor(getRandomColor(), n));
 }
+floors[0].addDude();
 
 
 function drawPoly(ctx, fillStyle, corners) {
