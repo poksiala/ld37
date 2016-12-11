@@ -34,7 +34,6 @@ function drawDudes(ctx) {
     for (var i=0; i < dudes.length; i++) {
         dudes[i].draw(ctx);
     }
-
 }
 
 function main() {
@@ -210,9 +209,5 @@ var floors = [
     newFloor("red"),
     newFloor("green")
 ];
-
-
-
-
 
 window.onload = main();
