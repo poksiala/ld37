@@ -30,11 +30,14 @@ for (var i=0; i < PLACES.length; i++) {
 
 function newGame(c) {
     var newGame = {
+        speed: 0,
         floorColor: "#4F1319",
         ceilingColor: "#BBBCBD",
         wallColor: "#4F4D4E",
+        liftPos: 100,
         ctx: c.getContext("2d"),
         update: function (){
+            this.liftPos += SPEED;
             this.doors.update();
         },
 
@@ -56,6 +59,7 @@ function newGame(c) {
                 drawPoly(ctx, this.color, rightDoor);
             },
             update: function () {
+
                 this.status += this.moving * this.speed;
                 if (this.status <= 0.0) {
                     this.status = 0.0;
@@ -80,11 +84,11 @@ function newGame(c) {
         draw: function() {
             this.ctx.beginPath();
             this.ctx.rect(0, 0, W, H);
-            this.ctx.fillStyle = "red";
+            this.ctx.fillStyle = "black";
             this.ctx.fill();
             var that = this;
             floors.forEach(function (f) {
-                f.draw(that.ctx)
+                f.draw(that.ctx, that.liftPos)
             });
             this.drawWalls();
             this.doors.draw(this.ctx);
@@ -107,7 +111,7 @@ function newGame(c) {
 
         changeSpeed: function(amount) {
             if (Math.abs(SPEED + amount) <= 3) {
-                SPEED += amount
+                SPEED += amount;
             }
         }
     };
@@ -177,23 +181,25 @@ function newDude(pos, f) {
     return dude
 }
 
-function newFloor(color) {
+function newFloor(color, pos) {
     return {
         color: color,
-        draw: function (ctx) {
-            ctx.beginPath();
-            ctx.rect(0, 0, W, H);
-            ctx.fillStyle = this.color;
-            ctx.fill();
+        h: 500,
+        pos: pos * 500,
+        draw: function (ctx, y) {
+            var top = y + this.pos;
+            var bottom = y + this.pos + this.h;
+            drawPoly(ctx, this.color, [[0, top], [W, top], [W, bottom], [0, bottom]]);
+            drawPoly(ctx, "black", [[0, bottom-100], [W, bottom-100], [W, bottom], [0, bottom]]);
         }
     };
-
 }
 
 var floors = [
-    newFloor("blue"),
-    newFloor("red"),
-    newFloor("green")
+    newFloor("blue", 0),
+    newFloor("pink", 1),
+    newFloor("green", 2),
+    newFloor("yellow", 3)
 ];
 
 function drawPoly(ctx, fillStyle, corners) {
