@@ -65,16 +65,16 @@ function newGame(c) {
                 return this.status == 0.0;
             },
             draw: function(ctx) {
-                var leftDoor = [DUL,
-                    [M + DW * this.status, M],
-                    [M + DW * this.status, H - M],
-                    DLL];
-                var rightDoor = [DUR,
-                    [W - M - DW * this.status, M],
-                    [W - M - DW * this.status, H - M],
-                    DLR];
-                drawPoly(ctx, this.color, leftDoor);
-                drawPoly(ctx, this.color, rightDoor);
+                var leftDoor = [DUL, [M + DW * this.status, M], [M + DW * this.status, H - M], DLL];
+                var leftDoorHole = [[M+ 50 *this.status, M +20 ], [M+ 50 *this.status, H-M -20],
+                    [M + (DW -50) * this.status, H - M -20],[M + (DW -50) * this.status, M+20] ];
+
+
+                var rightDoor =     [DUR, [W - M - DW * this.status, M], [W - M - DW * this.status, H - M], DLR];
+                var rightDoorHole = [[W-M - 50 * this.status, M + 20], [W-M - 50*this.status, H-M -20],
+                    [W - M + (50 - DW) * this.status, H - M -20], [W - M + (50 - DW) * this.status, M + 20]];
+                drawHole(ctx, this.color, leftDoor, leftDoorHole);
+                drawHole(ctx, this.color, rightDoor, rightDoorHole);
             },
             update: function () {
                 this.status += this.moving * this.speed;
@@ -107,8 +107,8 @@ function newGame(c) {
             floors.forEach(function (f) {
                 f.draw(that.ctx, that.liftPos)
             });
-            this.drawWalls();
             this.doors.draw(this.ctx);
+            this.drawWalls();
             for (var i = 0; i < this.dudes.length; i++) {
                 this.dudes[i].setPos(this.places[i]);
                 this.dudes[i].draw(that.ctx);
@@ -321,6 +321,35 @@ function drawPoly(ctx, fillStyle, corners) {
         ctx.lineTo(x, y);
     }
     ctx.closePath();
+    ctx.fill();
+}
+
+function drawHole(ctx, color, plane, hole) {
+    ctx.beginPath();
+
+    var x = plane[0][0];
+    var y = plane[0][1];
+    plane.shift();
+    ctx.moveTo(x, y);
+    for (var i = 0; i < plane.length; i++) {
+        x = plane[i][0];
+        y = plane[i][1];
+        ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+
+    var x = hole[0][0];
+    var y = hole[0][1];
+    hole.shift();
+    ctx.moveTo(x, y);
+    for (var i = 0; i < hole.length; i++) {
+        x = hole[i][0];
+        y = hole[i][1];
+        ctx.lineTo(x, y);
+    }
+
+    ctx.closePath();
+    ctx.fillStyle = color;
     ctx.fill();
 }
 
