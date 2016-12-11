@@ -1,3 +1,5 @@
+/* Made hastily for Ludum Dare 37. Please don't judge */
+
 var W = 400;
 var H = 500;
 
@@ -19,7 +21,7 @@ var TIME = 30*60*3;
 var timeElem = document.getElementById("time");
 
 var SPEED = 0;
-var MAXPATIENCE = 3000;
+var MAXPATIENCE = 2000;
 var NUMFLOORS = 7;
 
 var SCORE = 0;
@@ -36,7 +38,6 @@ function newGame(c) {
         liftPos: -500 * (NUMFLOORS -1),
         ctx: c.getContext("2d"),
         update: function (){
-            console.log(SCORE);
             this.liftPos +=  SPEED * Math.abs(SPEED);
             this.doors.update();
 
@@ -217,12 +218,14 @@ function newDude(pos, f) {
         isOut: false,
         update: function () {
             if (!this.isOut && this.inLift) {
-                console.log(this.wantsTo, Game.floor());
                 if (this.wantsTo == Game.floor() && Game.doors.areOpen()) {
                     Game.dudeOut(this);
                 }
+                if (this.patience>1) {
+                    this.patience = this.patience - 1;
+                }
             }
-            if (this.patience>0) {
+            if (this.patience>1) {
                 this.patience = this.patience - 1;
             }
         },
@@ -236,7 +239,7 @@ function newDude(pos, f) {
             ctx.fill();
 
             ctx.beginPath();
-            ctx.arc(x, y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2  - Math.PI * 2 * (this.patience / MAXPATIENCE), true);
+            ctx.arc(x, y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2 - Math.PI *2 * (this.patience / MAXPATIENCE), true);
             ctx.strokeStyle = "white";
             ctx.stroke();
 
