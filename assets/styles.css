@@ -1,15 +1,13 @@
 canvas {
-    border: 1px solid #d3d3d3;
+    border: 1px solid #32879F;
 }
 
 body {
     width: 500px;
     margin: auto;
     text-align: center;
-}
-
-h1.title {
-
+    background-color: #236167;
+    color: #031C1E;
 }
 
 

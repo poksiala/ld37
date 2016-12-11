@@ -1,4 +1,6 @@
-# Unnamed entry to Ludum Dare 37
+# LiftOperator 2016
+
+Made for Ludum Dare 37 Compo.
 https://ldjam.com/
 
-Done in vanilla js, which is my weakest language.
+Powered by HTML5, CSS and Vanilla JS.
