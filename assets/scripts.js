@@ -24,6 +24,8 @@ var PLACES = [[50, 490],[100, 470],[150, 490],[200, 470],[250, 490],[300, 470],[
 
 var dudes = [];
 
+var SCORE = 0;
+
 for (var i=0; i < PLACES.length; i++) {
     dudes.push(newDude(PLACES[i], Math.floor((Math.random() * NUMFLOORS) + 1)));
 }
@@ -39,7 +41,7 @@ function newGame(c) {
         liftPos: -500 * (NUMFLOORS -1),
         ctx: c.getContext("2d"),
         update: function (){
-            console.log(this.floor());
+            console.log(SCORE);
             this.liftPos +=  SPEED * Math.abs(SPEED);
             this.doors.update();
 
@@ -65,14 +67,15 @@ function newGame(c) {
                 return this.status == 0.0;
             },
             draw: function(ctx) {
+
                 var leftDoor = [DUL, [M + DW * this.status, M], [M + DW * this.status, H - M], DLL];
                 var leftDoorHole = [[M+ 50 *this.status, M +20 ], [M+ 50 *this.status, H-M -20],
-                    [M + (DW -50) * this.status, H - M -20],[M + (DW -50) * this.status, M+20] ];
-
+                    [M + (DW -50) * this.status, H - M -20],[M + (DW -50) * this.status, M+20]];
 
                 var rightDoor =     [DUR, [W - M - DW * this.status, M], [W - M - DW * this.status, H - M], DLR];
                 var rightDoorHole = [[W-M - 50 * this.status, M + 20], [W-M - 50*this.status, H-M -20],
                     [W - M + (50 - DW) * this.status, H - M -20], [W - M + (50 - DW) * this.status, M + 20]];
+
                 drawHole(ctx, this.color, leftDoor, leftDoorHole);
                 drawHole(ctx, this.color, rightDoor, rightDoorHole);
             },
@@ -150,6 +153,8 @@ function newGame(c) {
         dudeOut: function (dude) {
             var i = this.dudes.indexOf(dude);
             this.dudes.splice(i, 1);
+            SCORE += dude.patience;
+            dude.isOut = true;
         },
 
         /** Get current floor
@@ -199,10 +204,16 @@ function newDude(pos, f) {
         headR: 20,
         color: "black",
         wantsTo: f,
+        patience: 6000,
+        isOut: false,
         update: function () {
-            if (this.wantsTo == Game.floor() && Game.doors.areOpen()) {
-                Game.dudeOut(this);
+            if (!this.isOut && this.inLift) {
+                console.log(this.wantsTo, Game.floor());
+                if (this.wantsTo == Game.floor() && Game.doors.areOpen()) {
+                    Game.dudeOut(this);
+                }
             }
+            this.patience = this.patience - 1;
         },
         draw: function (ctx, x, y) {
             x = typeof x !== 'undefined' ? x : this.x;
@@ -212,6 +223,12 @@ function newDude(pos, f) {
             ctx.fillStyle = "black";
             ctx.arc(x, y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2, true);
             ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(x, y - this.legH - this.bodyH - this.headR/2, this.headR, 0, Math.PI * 2  - Math.PI * 2 * (this.patience / 6000), true);
+            ctx.strokeStyle = "white";
+            ctx.stroke();
+
 
             ctx.font="20px Georgia";
             ctx.fillStyle = "white";
@@ -252,8 +269,14 @@ function newFloor(color, pos) {
         pos: pos * 500,
 
         update: function () {
+
+            this.dudes.forEach(function (d) {
+                d.update();
+            });
             if (this.num == Game.floor()) {
                 // lift is on the floor
+
+
                 if (Game.doors.areOpen()) {
                     var insertedDudes = [];
 
